@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px; }
+      .container { max-width: 600px; margin: auto; }
+      h2 { color: #4a90e2; text-align: center; }
+      label { display: block; margin-top: 10px; }
+      input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+      textarea { height: 150px; }
+      button { margin-top: 15px; padding: 10px 20px; background-color: #4a90e2; color: #fff; border: none; cursor: pointer; }
+      button:hover { background-color: #4178c0; }
+      #status { margin-top: 10px; font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Send Mail Merge</h2>
+      <label>Tag</label>
+      <input type="text" id="tag" placeholder="e.g. pastor">
+      <label>Subject</label>
+      <input type="text" id="subject">
+      <label>Body (use {{Full Name}} for personalization)</label>
+      <textarea id="body"></textarea>
+      <button onclick="sendMail()">Send</button>
+      <div id="status"></div>
+    </div>
+    <script>
+      function sendMail() {
+        const tag = document.getElementById('tag').value;
+        const subject = document.getElementById('subject').value;
+        const body = document.getElementById('body').value;
+        document.getElementById('status').textContent = 'Sending...';
+        google.script.run.withSuccessHandler(function(msg) {
+          document.getElementById('status').textContent = msg;
+        }).withFailureHandler(function(err) {
+          document.getElementById('status').textContent = 'Error: ' + err.message;
+        }).sendMailMerge(tag, subject, body);
+      }
+    </script>
+  </body>
+</html>
