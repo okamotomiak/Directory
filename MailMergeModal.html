@@ -6,12 +6,12 @@
   <title>Mail Merge Modal</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-  <div id="modal" class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
-    <h2 class="text-xl font-bold text-center mb-4">Send Mail Merge</h2>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen text-lg p-4">
+  <div id="modal" class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
+    <h2 class="text-2xl font-bold text-center mb-6">Send Mail Merge</h2>
     <div class="mb-4">
       <label class="block font-semibold mb-1" for="templateSelect">Load Template</label>
-      <select id="templateSelect" class="border rounded w-full p-2">
+      <select id="templateSelect" class="border rounded w-full p-3 text-lg">
         <option value="">-- Select Template --</option>
       </select>
     </div>
@@ -21,20 +21,21 @@
     </div>
     <div class="mb-4">
       <label class="block font-semibold mb-1" for="subject">Subject</label>
-      <input id="subject" type="text" class="border rounded w-full p-2">
+      <input id="subject" type="text" class="border rounded w-full p-3 text-lg">
     </div>
     <div class="mb-2">
       <label class="block font-semibold mb-1" for="body">Body</label>
-      <textarea id="body" rows="6" class="border rounded w-full p-2" placeholder="Hello {{Full Name}},\nWe're excited to announce..."></textarea>
+      <textarea id="body" rows="6" class="border rounded w-full p-3 text-lg" placeholder="Hello {{Full Name}},\nWe're excited to announce..."></textarea>
     </div>
     <div class="flex flex-wrap items-center gap-2 mb-4">
-      <button id="insertVarBtn" class="bg-blue-100 text-blue-700 px-2 py-1 rounded">+ Insert Variable</button>
-      <select id="variableDropdown" class="border rounded p-1 hidden">
+      <button id="insertVarBtn" class="bg-blue-100 text-blue-700 px-3 py-1 rounded">+ Insert Variable</button>
+      <select id="variableDropdown" class="border rounded p-2 text-lg hidden">
+        <option value="" selected disabled>Select variable</option>
         <option value="{{Full Name}}">{{Full Name}}</option>
         <option value="{{Email}}">{{Email}}</option>
       </select>
-      <button id="previewBtn" class="bg-blue-500 text-white px-3 py-1 rounded">Preview Message</button>
-      <button id="saveBtn" class="bg-blue-500 text-white px-3 py-1 rounded">Save Template</button>
+      <button id="previewBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Preview Message</button>
+      <button id="saveBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Save Template</button>
     </div>
     <div class="flex gap-2 justify-end">
       <button id="sendBtn" class="bg-green-500 text-white px-4 py-2 rounded">Send</button>
@@ -123,9 +124,15 @@
     const selectedTags = Array.from(document.querySelectorAll('#tagList input:checked')).map(cb => cb.value);
     const subject = document.getElementById('subject').value;
     const body = document.getElementById('body').value;
-    const payload = {tags: selectedTags, subject, body};
-    console.log('Sending mail merge', payload);
-    alert('Mail merge payload logged to console');
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    google.script.run.withSuccessHandler(msg => {
+      alert(msg);
+      btn.disabled = false;
+    }).withFailureHandler(err => {
+      alert('Error: ' + err.message);
+      btn.disabled = false;
+    }).sendMailMerge(selectedTags, subject, body);
   });
 
   document.getElementById('cancelBtn').addEventListener('click', () => {
