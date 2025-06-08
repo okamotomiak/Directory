@@ -2,7 +2,7 @@
 
 // Display HTML interface for mail merge
 function showMailMergeDialog() {
-  const html = HtmlService.createHtmlOutputFromFile('MailMerge')
+  const html = HtmlService.createHtmlOutputFromFile('MailMergeModal')
     .setWidth(600)
     .setHeight(500);
   SpreadsheetApp.getUi().showModalDialog(html, 'Send Mail Merge');
@@ -34,4 +34,23 @@ function sendMailMerge(tag, subject, body) {
     console.error('Error sending mail merge:', error);
     throw error;
   }
+}
+
+// Retrieve list of tags from the Email Tag Reference sheet
+function getAllTags() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email Tag Reference');
+  if (!sheet) {
+    return [];
+  }
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) {
+    return [];
+  }
+  const values = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
+  return values.map(r => r[0]).filter(String);
+}
+
+// Backwards compatible name used by older HTML files
+function getAvailableTags() {
+  return getAllTags();
 }
