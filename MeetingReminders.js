@@ -26,8 +26,8 @@ function getReminderSheet() {
  */
 function showReminderDialog() {
   const html = HtmlService.createHtmlOutputFromFile('ReminderSidebar')
-    .setWidth(600)
-    .setHeight(500);
+    .setWidth(1000)
+    .setHeight(800);
   SpreadsheetApp.getUi().showModalDialog(html, 'Meeting Reminders');
 }
 
@@ -46,6 +46,29 @@ function addMeetingReminder(form) {
 }
 
 /**
+ * Retrieve active leaders matching any of the given tags
+ * Returns an array of {email, fullName}
+ */
+function getLeadersByTags(tags) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leadership Directory');
+  if (!sheet) return [];
+  const data = sheet.getDataRange().getValues();
+  const leaders = [];
+  const seen = new Set();
+  for (let i = 1; i < data.length; i++) {
+    const emailTags = data[i][8];
+    const email = data[i][3];
+    const status = data[i][10];
+    const fullName = data[i][1];
+    if (status === 'Active' && email && emailTags && tags.some(t => emailTags.includes(t)) && !seen.has(email)) {
+      leaders.push({ email, fullName });
+      seen.add(email);
+    }
+  }
+  return leaders;
+}
+
+/**
  * Send reminder emails if any are due and update next reminder date
  */
 function sendMeetingReminders() {
@@ -57,15 +80,13 @@ function sendMeetingReminders() {
     let [name, nextReminder, recurrence, recipientTags, message] = data[i];
     if (nextReminder && now >= new Date(nextReminder)) {
       const tags = recipientTags ? recipientTags.split(',').map(t => t.trim()).filter(String) : [];
-      const emailSet = new Set();
-      tags.forEach(tag => {
-        const emails = getEmailsByTag(tag);
-        emails.forEach(e => emailSet.add(e));
+      const leaders = getLeadersByTags(tags);
+      leaders.forEach(({email, fullName}) => {
+        const personalized = message
+          .replace(/{{\s*Full Name\s*}}/g, fullName)
+          .replace(/{{\s*Email\s*}}/g, email);
+        GmailApp.sendEmail(email, `Reminder: ${name}`, personalized);
       });
-      const allEmails = Array.from(emailSet).join(',');
-      if (allEmails) {
-        GmailApp.sendEmail(allEmails, `Reminder: ${name}`, message);
-      }
 
       // Calculate next reminder date
       const next = new Date(nextReminder);

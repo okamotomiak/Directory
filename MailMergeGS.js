@@ -4,8 +4,8 @@
 function showMailMergeDialog() {
   const html = HtmlService.createHtmlOutputFromFile('MailMergeModal')
 
-    .setWidth(600)
-    .setHeight(500);
+    .setWidth(1000)
+    .setHeight(800);
   SpreadsheetApp.getUi().showModalDialog(html, 'Send Mail Merge');
 }
 
