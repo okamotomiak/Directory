@@ -418,25 +418,3 @@ function sendMailMerge(tag, subject, body) {
   }
 }
 
-// Retrieve available tags for the mail merge dropdown
-function getAvailableTags() {
-  try {
-    const tagSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email Tag Reference');
-    if (!tagSheet) {
-      return [];
-    }
-    const lastRow = tagSheet.getLastRow();
-    if (lastRow <= 1) {
-      return [];
-    }
-    const tags = tagSheet.getRange(2, 2, lastRow - 1, 1).getValues()
-      .flat()
-      .filter(String);
-    // Remove duplicates
-    return Array.from(new Set(tags));
-  } catch (error) {
-    console.error('Error getting available tags:', error);
-    throw error;
-  }
-}
-
