@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mail Merge Modal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+  <div id="modal" class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+    <h2 class="text-xl font-bold text-center mb-4">Send Mail Merge</h2>
+    <div class="mb-4">
+      <label class="block font-semibold mb-1" for="templateSelect">Load Template</label>
+      <select id="templateSelect" class="border rounded w-full p-2">
+        <option value="">-- Select Template --</option>
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="block font-semibold mb-1">Tags:</label>
+      <div id="tagList" class="flex flex-wrap gap-2"></div>
+    </div>
+    <div class="mb-4">
+      <label class="block font-semibold mb-1" for="subject">Subject</label>
+      <input id="subject" type="text" class="border rounded w-full p-2">
+    </div>
+    <div class="mb-2">
+      <label class="block font-semibold mb-1" for="body">Body</label>
+      <textarea id="body" rows="6" class="border rounded w-full p-2" placeholder="Hello {{Full Name}},\nWe're excited to announce..."></textarea>
+    </div>
+    <div class="flex flex-wrap items-center gap-2 mb-4">
+      <button id="insertVarBtn" class="bg-blue-100 text-blue-700 px-2 py-1 rounded">+ Insert Variable</button>
+      <select id="variableDropdown" class="border rounded p-1 hidden">
+        <option value="{{Full Name}}">{{Full Name}}</option>
+        <option value="{{Email}}">{{Email}}</option>
+      </select>
+      <button id="previewBtn" class="bg-blue-500 text-white px-3 py-1 rounded">Preview Message</button>
+      <button id="saveBtn" class="bg-blue-500 text-white px-3 py-1 rounded">Save Template</button>
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button id="sendBtn" class="bg-green-500 text-white px-4 py-2 rounded">Send</button>
+      <button id="cancelBtn" class="bg-gray-400 text-white px-4 py-2 rounded">Cancel</button>
+    </div>
+  </div>
+
+<script>
+  const tags = [
+    'regional-director','sales-team','west-coast','board-member','emergency-contact'
+  ];
+
+  function populateTags() {
+    const container = document.getElementById('tagList');
+    tags.forEach(tag => {
+      const label = document.createElement('label');
+      label.className = 'flex items-center space-x-1';
+      label.innerHTML = `<input type="checkbox" value="${tag}" class="mr-1"> <span>${tag}</span>`;
+      container.appendChild(label);
+    });
+  }
+
+  function loadTemplateOptions() {
+    const select = document.getElementById('templateSelect');
+    select.innerHTML = '<option value="">-- Select Template --</option>';
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('mailTemplate_')) {
+        const name = key.replace('mailTemplate_', '');
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      }
+    });
+  }
+
+  document.getElementById('insertVarBtn').addEventListener('click', () => {
+    document.getElementById('variableDropdown').classList.toggle('hidden');
+  });
+
+  document.getElementById('variableDropdown').addEventListener('change', e => {
+    const value = e.target.value;
+    if (!value) return;
+    insertAtCursor(document.getElementById('body'), value);
+    e.target.classList.add('hidden');
+    e.target.selectedIndex = 0;
+  });
+
+  function insertAtCursor(textarea, text) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    textarea.focus();
+  }
+
+  document.getElementById('previewBtn').addEventListener('click', () => {
+    const subject = document.getElementById('subject').value;
+    const body = document.getElementById('body').value;
+    const previewBody = body.replace(/\{\{\s*Full Name\s*\}\}/g, 'John Smith')
+                            .replace(/\{\{\s*Email\s*\}\}/g, 'john.smith@example.com');
+    alert('Subject: ' + subject + '\n\n' + previewBody);
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', () => {
+    const name = prompt('Template name:');
+    if (!name) return;
+    const subject = document.getElementById('subject').value;
+    const body = document.getElementById('body').value;
+    localStorage.setItem('mailTemplate_' + name, JSON.stringify({subject, body}));
+    loadTemplateOptions();
+    alert('Template saved');
+  });
+
+  document.getElementById('templateSelect').addEventListener('change', e => {
+    const name = e.target.value;
+    if (!name) return;
+    const data = localStorage.getItem('mailTemplate_' + name);
+    if (data) {
+      const {subject, body} = JSON.parse(data);
+      document.getElementById('subject').value = subject || '';
+      document.getElementById('body').value = body || '';
+    }
+  });
+
+  document.getElementById('sendBtn').addEventListener('click', () => {
+    const selectedTags = Array.from(document.querySelectorAll('#tagList input:checked')).map(cb => cb.value);
+    const subject = document.getElementById('subject').value;
+    const body = document.getElementById('body').value;
+    const payload = {tags: selectedTags, subject, body};
+    console.log('Sending mail merge', payload);
+    alert('Mail merge payload logged to console');
+  });
+
+  document.getElementById('cancelBtn').addEventListener('click', () => {
+    document.querySelectorAll('#tagList input').forEach(cb => cb.checked = false);
+    document.getElementById('subject').value = '';
+    document.getElementById('body').value = '';
+    document.getElementById('templateSelect').selectedIndex = 0;
+  });
+
+  populateTags();
+  loadTemplateOptions();
+</script>
+</body>
+</html>
