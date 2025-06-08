@@ -2,7 +2,20 @@
  * FWWPU Northeast Leadership Directory Creator
  * Creates formatted sheets in the active Google Spreadsheet for leadership contact
  * info and email automation
- */
+*/
+
+// Add a custom menu to the spreadsheet when it is opened
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('Leadership Tools')
+    .addItem('Create Directory', 'createLeadershipDirectory')
+    .addSeparator()
+    .addItem('Send Mail Merge…', 'showMailMergeDialog')
+    .addSeparator()
+    .addItem('Meeting Reminder Setup…', 'showReminderSidebar')
+    .addItem('Send Meeting Reminders Now', 'sendMeetingReminders')
+    .addToUi();
+}
 
 function createLeadershipDirectory() {
   try {
