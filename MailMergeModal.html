@@ -30,6 +30,7 @@
     <div class="flex flex-wrap items-center gap-2 mb-4">
       <button id="insertVarBtn" class="bg-blue-100 text-blue-700 px-2 py-1 rounded">+ Insert Variable</button>
       <select id="variableDropdown" class="border rounded p-1 hidden">
+        <option value="" selected disabled>Select variable</option>
         <option value="{{Full Name}}">{{Full Name}}</option>
         <option value="{{Email}}">{{Email}}</option>
       </select>
@@ -123,9 +124,15 @@
     const selectedTags = Array.from(document.querySelectorAll('#tagList input:checked')).map(cb => cb.value);
     const subject = document.getElementById('subject').value;
     const body = document.getElementById('body').value;
-    const payload = {tags: selectedTags, subject, body};
-    console.log('Sending mail merge', payload);
-    alert('Mail merge payload logged to console');
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = true;
+    google.script.run.withSuccessHandler(msg => {
+      alert(msg);
+      btn.disabled = false;
+    }).withFailureHandler(err => {
+      alert('Error: ' + err.message);
+      btn.disabled = false;
+    }).sendMailMerge(selectedTags, subject, body);
   });
 
   document.getElementById('cancelBtn').addEventListener('click', () => {
