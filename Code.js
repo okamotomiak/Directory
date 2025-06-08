@@ -12,7 +12,7 @@ function onOpen() {
     .addSeparator()
     .addItem('Send Mail Merge…', 'showMailMergeDialog')
     .addSeparator()
-    .addItem('Meeting Reminder Setup…', 'showReminderSidebar')
+    .addItem('Meeting Reminder Setup…', 'showReminderDialog')
     .addItem('Send Meeting Reminders Now', 'sendMeetingReminders')
     .addToUi();
 }

@@ -22,12 +22,13 @@ function getReminderSheet() {
 }
 
 /**
- * Show sidebar UI for creating a reminder
+ * Show a popup dialog for creating a reminder
  */
-function showReminderSidebar() {
+function showReminderDialog() {
   const html = HtmlService.createHtmlOutputFromFile('ReminderSidebar')
-    .setTitle('Meeting Reminders');
-  SpreadsheetApp.getUi().showSidebar(html);
+    .setWidth(600)
+    .setHeight(500);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Meeting Reminders');
 }
 
 /**
