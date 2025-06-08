@@ -418,32 +418,3 @@ function sendMailMerge(tag, subject, body) {
   }
 }
 
-
-/**
- * Get a list of all unique email tags from the Leadership Directory.
- * @return {string[]} Sorted array of tags
- */
-function getAllTags() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leadership Directory');
-  if (!sheet) {
-    return [];
-  }
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) {
-    return [];
-  }
-  const tagData = sheet.getRange(2, 9, lastRow - 1, 1).getValues();
-  const tagSet = new Set();
-  tagData.forEach(row => {
-    const tags = row[0];
-    if (tags) {
-      tags.split(',').forEach(t => {
-        const trimmed = t.trim();
-        if (trimmed) {
-          tagSet.add(trimmed);
-        }
-      });
-    }
-  });
-  return Array.from(tagSet).sort();
-}
