@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {font-family: Arial, sans-serif; padding: 10px;}
+      label {display:block;margin-top:8px;}
+      input, textarea, select {width:100%; box-sizing:border-box;}
+      button {margin-top:10px;}
+    </style>
+  </head>
+  <body>
+    <h2>New Meeting Reminder</h2>
+    <form id="reminderForm">
+      <label>Meeting Name
+        <input type="text" name="meetingName" required>
+      </label>
+      <label>Next Reminder (date & time)
+        <input type="datetime-local" name="nextReminder" required>
+      </label>
+      <label>Recurrence
+        <select name="recurrence">
+          <option value="None">None</option>
+          <option value="Daily">Daily</option>
+          <option value="Weekly">Weekly</option>
+          <option value="Monthly">Monthly</option>
+        </select>
+      </label>
+      <label>Recipients (comma separated)
+        <input type="text" name="recipients" required>
+      </label>
+      <label>Message
+        <textarea name="message" rows="4" required></textarea>
+      </label>
+      <button type="submit">Add Reminder</button>
+    </form>
+    <script>
+      const form = document.getElementById('reminderForm');
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        google.script.run.withSuccessHandler(() => {
+          form.reset();
+          alert('Reminder added');
+        }).addMeetingReminder(Object.fromEntries(new FormData(form)));
+      });
+    </script>
+  </body>
+</html>
