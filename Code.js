@@ -1,13 +1,16 @@
 /**
  * FWWPU Northeast Leadership Directory Creator
- * Creates a formatted Google Sheet for leadership contact info and email automation
+ * Creates formatted sheets in the active Google Spreadsheet for leadership contact
+ * info and email automation
  */
 
 function createLeadershipDirectory() {
   try {
-    // Create new spreadsheet
-    const spreadsheet = SpreadsheetApp.create('FWWPU Northeast Leadership Directory');
-    const sheet = spreadsheet.getActiveSheet();
+    // Use the active spreadsheet instead of creating a new one
+    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+
+    // Insert a new sheet for the directory
+    const sheet = spreadsheet.insertSheet();
     sheet.setName('Leadership Directory');
     
     // Set up headers
@@ -285,11 +288,10 @@ function createLeadershipDirectory() {
     instructionsSheet.getRange(29, 1).setFontWeight('bold');
     instructionsSheet.setColumnWidth(1, 600);
     
-    // Log the spreadsheet URL
-    console.log('Leadership Directory created successfully!');
-    console.log('Spreadsheet URL: ' + spreadsheet.getUrl());
-    
-    // Return the spreadsheet URL
+    // Log success
+    console.log('Leadership Directory created successfully in the active spreadsheet');
+
+    // Return the current spreadsheet URL for reference
     return spreadsheet.getUrl();
     
   } catch (error) {
