@@ -3,6 +3,7 @@
 // Display HTML interface for mail merge
 function showMailMergeDialog() {
   const html = HtmlService.createHtmlOutputFromFile('MailMergeModal')
+
     .setWidth(600)
     .setHeight(500);
   SpreadsheetApp.getUi().showModalDialog(html, 'Send Mail Merge');
