@@ -1,50 +1,53 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base target="_top">
-    <style>
-      body {font-family: Arial, sans-serif; padding: 10px;}
-      label {display:block;margin-top:8px;}
-      input, textarea, select {width:100%; box-sizing:border-box;}
-      button {margin-top:10px;}
-      .dropdown {position: relative;}
-      .dropdown-content {display:none; position:absolute; background:#fff; border:1px solid #ccc; max-height:150px; overflow-y:auto; width:100%; z-index:1; padding:5px;}
-      .dropdown.show .dropdown-content {display:block;}
-      .dropdown-content label {display:block; margin:2px 0;}
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <h2>New Meeting Reminder</h2>
-    <form id="reminderForm">
-      <label>Meeting Name
-        <input type="text" name="meetingName" required>
-      </label>
-      <label>Next Reminder (date & time)
-        <input type="datetime-local" name="nextReminder" required>
-      </label>
-      <label>Recurrence
-        <select name="recurrence">
-          <option value="None">None</option>
-          <option value="Daily">Daily</option>
-          <option value="Weekly">Weekly</option>
-          <option value="Monthly">Monthly</option>
-        </select>
-      </label>
-      <label>Recipient Tags
-        <div class="dropdown" id="tagDropdown">
-          <button type="button" id="tagButton" onclick="toggleDropdown()">Choose Tags</button>
-          <div class="dropdown-content" id="tagList"></div>
-        </div>
-        <input type="hidden" name="recipients" id="selectedTags" required>
-      </label>
-      <label>Message
-        <textarea name="message" rows="4" required></textarea>
-      </label>
-      <button type="submit">Add Reminder</button>
-    </form>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen text-lg p-4">
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-8">
+      <h2 class="text-2xl font-bold text-center mb-6">New Meeting Reminder</h2>
+      <form id="reminderForm" class="space-y-4">
+        <label class="block font-semibold">Meeting Name
+          <input class="border rounded w-full p-3 text-lg" type="text" name="meetingName" required>
+        </label>
+        <label class="block font-semibold">Next Reminder (date & time)
+          <input class="border rounded w-full p-3 text-lg" type="datetime-local" name="nextReminder" required>
+        </label>
+        <label class="block font-semibold">Recurrence
+          <select class="border rounded w-full p-3 text-lg" name="recurrence">
+            <option value="None">None</option>
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
+          </select>
+        </label>
+        <label class="block font-semibold">Recipient Tags
+          <div class="relative" id="tagDropdown">
+            <button type="button" id="tagButton" onclick="toggleDropdown()" class="bg-blue-100 text-blue-700 px-3 py-1 rounded w-full text-left">Choose Tags</button>
+            <div class="absolute bg-white border rounded shadow w-full max-h-40 overflow-y-auto hidden z-10" id="tagList"></div>
+          </div>
+          <input type="hidden" name="recipients" id="selectedTags" required>
+        </label>
+        <label class="block font-semibold">Message
+          <textarea class="border rounded w-full p-3 text-lg" name="message" rows="6" placeholder="Hello {{Full Name}}," required></textarea>
+          <div class="flex items-center gap-2 mt-2">
+            <button id="insertVarReminder" type="button" class="bg-blue-100 text-blue-700 px-3 py-1 rounded">+ Insert Variable</button>
+            <select id="variableDropdownReminder" class="border rounded p-2 text-lg hidden">
+              <option value="" selected disabled>Select variable</option>
+              <option value="{{Full Name}}">{{Full Name}}</option>
+              <option value="{{Email}}">{{Email}}</option>
+            </select>
+          </div>
+        </label>
+        <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Add Reminder</button>
+      </form>
+    </div>
     <script>
       function toggleDropdown() {
-        document.getElementById('tagDropdown').classList.toggle('show');
+        document.getElementById('tagList').classList.toggle('hidden');
       }
 
       function loadTags() {
@@ -65,9 +68,29 @@
         document.getElementById('tagButton').textContent = selected.length ? selected.join(', ') : 'Choose Tags';
       }
 
+      document.getElementById('insertVarReminder').addEventListener('click', () => {
+        document.getElementById('variableDropdownReminder').classList.toggle('hidden');
+      });
+
+      document.getElementById('variableDropdownReminder').addEventListener('change', e => {
+        const value = e.target.value;
+        if (!value) return;
+        insertAtCursor(document.querySelector('textarea[name="message"]'), value);
+        e.target.classList.add('hidden');
+        e.target.selectedIndex = 0;
+      });
+
+      function insertAtCursor(textarea, text) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end);
+        textarea.selectionStart = textarea.selectionEnd = start + text.length;
+        textarea.focus();
+      }
+
       document.addEventListener('click', e => {
         if (!document.getElementById('tagDropdown').contains(e.target)) {
-          document.getElementById('tagDropdown').classList.remove('show');
+          document.getElementById('tagList').classList.add('hidden');
         }
       });
 
