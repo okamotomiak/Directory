@@ -43,18 +43,17 @@
   </div>
 
 <script>
-  const tags = [
-    'regional-director','sales-team','west-coast','board-member','emergency-contact'
-  ];
-
   function populateTags() {
-    const container = document.getElementById('tagList');
-    tags.forEach(tag => {
-      const label = document.createElement('label');
-      label.className = 'flex items-center space-x-1';
-      label.innerHTML = `<input type="checkbox" value="${tag}" class="mr-1"> <span>${tag}</span>`;
-      container.appendChild(label);
-    });
+    google.script.run.withSuccessHandler(tags => {
+      const container = document.getElementById('tagList');
+      container.innerHTML = '';
+      tags.forEach(tag => {
+        const label = document.createElement('label');
+        label.className = 'flex items-center space-x-1';
+        label.innerHTML = `<input type="checkbox" value="${tag}" class="mr-1"> <span>${tag}</span>`;
+        container.appendChild(label);
+      });
+    }).getAllTags();
   }
 
   function loadTemplateOptions() {
