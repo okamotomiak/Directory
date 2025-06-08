@@ -7,6 +7,10 @@
       label {display:block;margin-top:8px;}
       input, textarea, select {width:100%; box-sizing:border-box;}
       button {margin-top:10px;}
+      .dropdown {position: relative;}
+      .dropdown-content {display:none; position:absolute; background:#fff; border:1px solid #ccc; max-height:150px; overflow-y:auto; width:100%; z-index:1; padding:5px;}
+      .dropdown.show .dropdown-content {display:block;}
+      .dropdown-content label {display:block; margin:2px 0;}
     </style>
   </head>
   <body>
@@ -26,8 +30,12 @@
           <option value="Monthly">Monthly</option>
         </select>
       </label>
-      <label>Recipients (comma separated)
-        <input type="text" name="recipients" required>
+      <label>Recipient Tags
+        <div class="dropdown" id="tagDropdown">
+          <button type="button" id="tagButton" onclick="toggleDropdown()">Choose Tags</button>
+          <div class="dropdown-content" id="tagList"></div>
+        </div>
+        <input type="hidden" name="recipients" id="selectedTags" required>
       </label>
       <label>Message
         <textarea name="message" rows="4" required></textarea>
@@ -35,14 +43,45 @@
       <button type="submit">Add Reminder</button>
     </form>
     <script>
+      function toggleDropdown() {
+        document.getElementById('tagDropdown').classList.toggle('show');
+      }
+
+      function loadTags() {
+        google.script.run.withSuccessHandler(tags => {
+          const list = document.getElementById('tagList');
+          list.innerHTML = '';
+          tags.forEach(tag => {
+            const label = document.createElement('label');
+            label.innerHTML = `<input type="checkbox" value="${tag}" onchange="updateSelectedTags()"> ${tag}`;
+            list.appendChild(label);
+          });
+        }).getAllTags();
+      }
+
+      function updateSelectedTags() {
+        const selected = Array.from(document.querySelectorAll('#tagList input:checked')).map(cb => cb.value);
+        document.getElementById('selectedTags').value = selected.join(',');
+        document.getElementById('tagButton').textContent = selected.length ? selected.join(', ') : 'Choose Tags';
+      }
+
+      document.addEventListener('click', e => {
+        if (!document.getElementById('tagDropdown').contains(e.target)) {
+          document.getElementById('tagDropdown').classList.remove('show');
+        }
+      });
+
       const form = document.getElementById('reminderForm');
       form.addEventListener('submit', e => {
         e.preventDefault();
         google.script.run.withSuccessHandler(() => {
           form.reset();
+          document.getElementById('tagButton').textContent = 'Choose Tags';
           alert('Reminder added');
         }).addMeetingReminder(Object.fromEntries(new FormData(form)));
       });
+
+      window.onload = loadTags;
     </script>
   </body>
 </html>

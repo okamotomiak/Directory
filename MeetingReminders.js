@@ -8,7 +8,7 @@ function getReminderSheet() {
   let sheet = ss.getSheetByName('Meeting Reminders');
   if (!sheet) {
     sheet = ss.insertSheet('Meeting Reminders');
-    const headers = ['Meeting Name', 'Next Reminder', 'Recurrence', 'Recipients', 'Message'];
+    const headers = ['Meeting Name', 'Next Reminder', 'Recurrence', 'Recipient Tags', 'Message'];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.getRange(1, 1, 1, headers.length)
          .setFontWeight('bold')
@@ -53,9 +53,18 @@ function sendMeetingReminders() {
   const now = new Date();
 
   for (let i = 1; i < data.length; i++) {
-    let [name, nextReminder, recurrence, recipients, message] = data[i];
+    let [name, nextReminder, recurrence, recipientTags, message] = data[i];
     if (nextReminder && now >= new Date(nextReminder)) {
-      GmailApp.sendEmail(recipients, `Reminder: ${name}`, message);
+      const tags = recipientTags ? recipientTags.split(',').map(t => t.trim()).filter(String) : [];
+      const emailSet = new Set();
+      tags.forEach(tag => {
+        const emails = getEmailsByTag(tag);
+        emails.forEach(e => emailSet.add(e));
+      });
+      const allEmails = Array.from(emailSet).join(',');
+      if (allEmails) {
+        GmailApp.sendEmail(allEmails, `Reminder: ${name}`, message);
+      }
 
       // Calculate next reminder date
       const next = new Date(nextReminder);
