@@ -59,17 +59,16 @@
   }
 
   function loadTemplateOptions() {
-    const select = document.getElementById('templateSelect');
-    select.innerHTML = '<option value="">-- Select Template --</option>';
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('mailTemplate_')) {
-        const name = key.replace('mailTemplate_', '');
+    google.script.run.withSuccessHandler(templates => {
+      const select = document.getElementById('templateSelect');
+      select.innerHTML = '<option value="">-- Select Template --</option>';
+      templates.forEach(t => {
         const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
+        opt.value = t.name;
+        opt.textContent = t.name;
         select.appendChild(opt);
-      }
-    });
+      });
+    }).listMailTemplates();
   }
 
   document.getElementById('insertVarBtn').addEventListener('click', () => {
@@ -105,20 +104,21 @@
     if (!name) return;
     const subject = document.getElementById('subject').value;
     const body = document.getElementById('body').value;
-    localStorage.setItem('mailTemplate_' + name, JSON.stringify({subject, body}));
-    loadTemplateOptions();
-    alert('Template saved');
+    google.script.run.withSuccessHandler(() => {
+      loadTemplateOptions();
+      alert('Template saved');
+    }).saveMailTemplate(name, subject, body);
   });
 
   document.getElementById('templateSelect').addEventListener('change', e => {
     const name = e.target.value;
     if (!name) return;
-    const data = localStorage.getItem('mailTemplate_' + name);
-    if (data) {
-      const {subject, body} = JSON.parse(data);
-      document.getElementById('subject').value = subject || '';
-      document.getElementById('body').value = body || '';
-    }
+    google.script.run.withSuccessHandler(t => {
+      if (t) {
+        document.getElementById('subject').value = t.subject || '';
+        document.getElementById('body').value = t.body || '';
+      }
+    }).getMailTemplate(name);
   });
 
   document.getElementById('sendBtn').addEventListener('click', () => {

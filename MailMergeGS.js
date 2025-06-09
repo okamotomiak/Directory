@@ -60,3 +60,61 @@ function getAllTags() {
 function getAvailableTags() {
   return getAllTags();
 }
+
+// Get or create the sheet used to store mail merge templates
+function getTemplateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName('Mail Templates');
+  if (!sheet) {
+    sheet = ss.insertSheet('Mail Templates');
+    const headers = ['Template Name', 'Subject', 'Body'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length)
+      .setFontWeight('bold')
+      .setBackground('#4a90e2')
+      .setFontColor('#ffffff')
+      .setHorizontalAlignment('center');
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidths(1, headers.length, 200);
+  }
+  return sheet;
+}
+
+// Save or update a template in the Mail Templates sheet
+function saveMailTemplate(name, subject, body) {
+  const sheet = getTemplateSheet();
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) {
+      sheet.getRange(i + 1, 2, 1, 2).setValues([[subject, body]]);
+      return;
+    }
+  }
+  sheet.appendRow([name, subject, body]);
+}
+
+// Retrieve all saved templates
+function listMailTemplates() {
+  const sheet = getTemplateSheet();
+  const data = sheet.getDataRange().getValues();
+  const templates = [];
+  for (let i = 1; i < data.length; i++) {
+    const [name, subject, body] = data[i];
+    if (name) {
+      templates.push({ name, subject, body });
+    }
+  }
+  return templates;
+}
+
+// Retrieve a single template by name
+function getMailTemplate(name) {
+  const sheet = getTemplateSheet();
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) {
+      return { name: data[i][0], subject: data[i][1], body: data[i][2] };
+    }
+  }
+  return null;
+}
