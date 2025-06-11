@@ -8,6 +8,14 @@
  * @return {string} The public URL of the created form.
  */
 function createLeaderForm() {
+  // Remove any existing submit triggers to avoid duplicates
+  const triggers = ScriptApp.getProjectTriggers();
+  for (let i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'handleLeaderFormSubmit') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+
   const form = FormApp.create('Leadership Directory Entry Form');
 
   form.addTextItem().setTitle('Full Name').setRequired(true);
@@ -36,6 +44,12 @@ function createLeaderForm() {
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+
+  // Automatically process new submissions
+  ScriptApp.newTrigger('handleLeaderFormSubmit')
+    .forForm(form)
+    .onFormSubmit()
+    .create();
 
   // Rename the default response sheet and add a Processed column
   const responseSheet = ss.getSheetByName('Form Responses 1');
@@ -75,4 +89,13 @@ function importLeaderFormResponses() {
 
     responseSheet.getRange(i + 1, processedCol).setValue('DONE');
   }
+}
+
+/**
+ * Trigger handler to process form submissions as they occur.
+ *
+ * @param {Object} e The form submit event.
+ */
+function handleLeaderFormSubmit(e) {
+  importLeaderFormResponses();
 }
