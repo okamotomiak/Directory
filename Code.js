@@ -17,22 +17,50 @@ function onOpen() {
     .addToUi();
 }
 /**
- * Automatically assign an ID when editing the Leadership Directory
+ * Ensure every row in the Leadership Directory has a unique numeric ID.
+ * Handles single edits as well as copy/paste of multiple rows.
  */
 function onEdit(e) {
   const sheet = e.range.getSheet();
   if (sheet.getName() !== 'Leadership Directory') return;
-  const row = e.range.getRow();
-  if (row <= 1) return;
-  const idCell = sheet.getRange(row, 1);
-  if (idCell.getValue()) return;
-  const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
-  let max = 0;
-  data.forEach(r => {
-    const v = r[0];
-    if (typeof v === 'number' && v > max) max = v;
+  ensureUniqueIds(sheet);
+}
+
+/**
+ * Scan the ID column and assign sequential IDs for any blank or duplicated
+ * entries. The next ID is always greater than the current maximum to avoid
+ * collisions with existing rows.
+ */
+function ensureUniqueIds(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return;
+  const range = sheet.getRange(2, 1, lastRow - 1, 1);
+  const values = range.getValues();
+
+  let maxId = 0;
+  values.forEach(row => {
+    const v = row[0];
+    if (typeof v === 'number' && v > maxId) {
+      maxId = v;
+    }
   });
-  idCell.setValue(max + 1);
+
+  const seen = new Set();
+  let nextId = maxId + 1;
+  let changed = false;
+  for (let i = 0; i < values.length; i++) {
+    const current = values[i][0];
+    if (typeof current !== 'number' || seen.has(current)) {
+      values[i][0] = nextId++;
+      changed = true;
+    } else {
+      seen.add(current);
+    }
+  }
+
+  if (changed) {
+    range.setValues(values);
+  }
 }
 
 function createLeadershipDirectory() {
