@@ -16,6 +16,24 @@ function onOpen() {
     .addItem('Send Meeting Reminders Now', 'sendMeetingReminders')
     .addToUi();
 }
+/**
+ * Automatically assign an ID when editing the Leadership Directory
+ */
+function onEdit(e) {
+  const sheet = e.range.getSheet();
+  if (sheet.getName() !== 'Leadership Directory') return;
+  const row = e.range.getRow();
+  if (row <= 1) return;
+  const idCell = sheet.getRange(row, 1);
+  if (idCell.getValue()) return;
+  const data = sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).getValues();
+  let max = 0;
+  data.forEach(r => {
+    const v = r[0];
+    if (typeof v === 'number' && v > max) max = v;
+  });
+  idCell.setValue(max + 1);
+}
 
 function createLeadershipDirectory() {
   try {
