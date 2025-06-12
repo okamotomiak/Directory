@@ -2,59 +2,7 @@
 <html>
   <head>
     <base target="_top">
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f5;
-        padding: 20px;
-      }
-      .container {
-        max-width: 600px;
-        margin: auto;
-        background: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-      }
-      h2 {
-        color: #4a90e2;
-        text-align: center;
-        margin-top: 0;
-      }
-      label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-      }
-      input[type="text"], select, textarea {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-      }
-      textarea {
-        height: 150px;
-        resize: vertical;
-      }
-      button {
-        margin-top: 15px;
-        padding: 10px 20px;
-        background-color: #4a90e2;
-        color: #fff;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      button:hover {
-        background-color: #4178c0;
-      }
-      #status {
-        margin-top: 10px;
-        font-weight: bold;
-        text-align: center;
-      }
-    </style>
+    <?!= HtmlService.createHtmlOutputFromFile("styles.css").getContent(); ?>
   </head>
   <body onload="loadTags()">
     <div class="container">

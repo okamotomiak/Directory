@@ -10,11 +10,11 @@
 function createLeaderForm() {
   // Remove any existing submit triggers to avoid duplicates
   const triggers = ScriptApp.getProjectTriggers();
-  for (let i = 0; i < triggers.length; i++) {
-    if (triggers[i].getHandlerFunction() === 'handleLeaderFormSubmit') {
-      ScriptApp.deleteTrigger(triggers[i]);
+  triggers.forEach(t => {
+    if (t.getHandlerFunction() === 'handleLeaderFormSubmit') {
+      ScriptApp.deleteTrigger(t);
     }
-  }
+  });
 
   const form = FormApp.create('Leadership Directory Entry Form');
 
@@ -65,8 +65,8 @@ function createLeaderForm() {
 }
 
 /**
- * Import unprocessed form responses into the Leadership Directory sheet.
- * Marks imported rows as processed to avoid duplicates.
+ * Import unprocessed form responses into the Leadership Directory sheet and
+ * mark them as processed.
  */
 function importLeaderFormResponses() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -78,23 +78,23 @@ function importLeaderFormResponses() {
 
   const data = responseSheet.getDataRange().getValues();
   const processedCol = responseSheet.getLastColumn();
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][processedCol - 1]) continue; // already processed
+  data.slice(1).forEach((row, idx) => {
+    if (row[processedCol - 1]) return; // already processed
 
     const [timestamp, name, title, email, phone, location, bio,
-           photoUrl, emailTags, websiteDisplay, status] = data[i];
+           photoUrl, emailTags, websiteDisplay, status] = row;
 
     addNewLeader(name, title, email, phone, location, bio, photoUrl,
                  emailTags, websiteDisplay === 'TRUE', status);
 
-    responseSheet.getRange(i + 1, processedCol).setValue('DONE');
-  }
+    responseSheet.getRange(idx + 2, processedCol).setValue('DONE');
+  });
 }
 
 /**
  * Trigger handler to process form submissions as they occur.
  *
- * @param {Object} e The form submit event.
+ * @param {GoogleAppsScript.Events.FormsOnFormSubmit} e Form submit event.
  */
 function handleLeaderFormSubmit(e) {
   importLeaderFormResponses();
