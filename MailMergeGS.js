@@ -1,6 +1,8 @@
 // Functions for sending mail merges
 
-// Display HTML interface for mail merge
+/**
+ * Open the Mail Merge modal dialog in the spreadsheet UI.
+ */
 function showMailMergeDialog() {
   const html = HtmlService.createHtmlOutputFromFile('MailMergeModal')
 
@@ -9,7 +11,14 @@ function showMailMergeDialog() {
   SpreadsheetApp.getUi().showModalDialog(html, 'Send Mail Merge');
 }
 
-// Send personalized emails based on one or more tags
+/**
+ * Send personalized emails to leaders matching the provided tag or tags.
+ *
+ * @param {string|string[]} tagOrTags Single tag or array of tags.
+ * @param {string} subject Email subject line.
+ * @param {string} body HTML body with {{Full Name}} and {{Email}} variables.
+ * @return {string} Status message summarizing how many emails were sent.
+ */
 function sendMailMerge(tagOrTags, subject, body) {
   try {
     const tags = Array.isArray(tagOrTags) ? tagOrTags : [tagOrTags];
@@ -17,11 +26,11 @@ function sendMailMerge(tagOrTags, subject, body) {
     const data = sheet.getDataRange().getValues();
     let count = 0;
     const sent = new Set();
-    for (let i = 1; i < data.length; i++) {
-      const emailTags = data[i][8];
-      const email = data[i][3];
-      const status = data[i][10];
-      const fullName = data[i][1];
+    data.slice(1).forEach(row => {
+      const emailTags = row[8];
+      const email = row[3];
+      const status = row[10];
+      const fullName = row[1];
       if (status === 'Active' && emailTags && tags.some(t => emailTags.includes(t)) && !sent.has(email)) {
         const personalizedBody = body
           .replace(/{{\s*Full Name\s*}}/g, fullName)
@@ -34,7 +43,7 @@ function sendMailMerge(tagOrTags, subject, body) {
         sent.add(email);
         count++;
       }
-    }
+    });
     return `Sent ${count} emails.`;
   } catch (error) {
     console.error('Error sending mail merge:', error);
@@ -42,7 +51,11 @@ function sendMailMerge(tagOrTags, subject, body) {
   }
 }
 
-// Retrieve list of tags from the Email Tag Reference sheet
+/**
+ * Retrieve list of tags from the "Email Tag Reference" sheet.
+ *
+ * @return {string[]} Array of tag strings.
+ */
 function getAllTags() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Email Tag Reference');
   if (!sheet) {
@@ -56,12 +69,20 @@ function getAllTags() {
   return values.map(r => r[0]).filter(String);
 }
 
-// Backwards compatible name used by older HTML files
+/**
+ * Backwards compatible name used by older HTML files.
+ *
+ * @return {string[]} Array of tag strings.
+ */
 function getAvailableTags() {
   return getAllTags();
 }
 
-// Get or create the sheet used to store mail merge templates
+/**
+ * Get or create the sheet used to store mail merge templates.
+ *
+ * @return {GoogleAppsScript.Spreadsheet.Sheet} Sheet storing templates.
+ */
 function getTemplateSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName('Mail Templates');
@@ -80,7 +101,13 @@ function getTemplateSheet() {
   return sheet;
 }
 
-// Save or update a template in the Mail Templates sheet
+/**
+ * Save or update a template in the Mail Templates sheet.
+ *
+ * @param {string} name Template name.
+ * @param {string} subject Email subject.
+ * @param {string} body Email body HTML.
+ */
 function saveMailTemplate(name, subject, body) {
   const sheet = getTemplateSheet();
   const data = sheet.getDataRange().getValues();
@@ -93,21 +120,28 @@ function saveMailTemplate(name, subject, body) {
   sheet.appendRow([name, subject, body]);
 }
 
-// Retrieve all saved templates
+/**
+ * Retrieve all saved mail merge templates.
+ *
+ * @return {{name:string,subject:string,body:string}[]} Templates.
+ */
 function listMailTemplates() {
   const sheet = getTemplateSheet();
   const data = sheet.getDataRange().getValues();
   const templates = [];
-  for (let i = 1; i < data.length; i++) {
-    const [name, subject, body] = data[i];
-    if (name) {
-      templates.push({ name, subject, body });
-    }
-  }
+  data.slice(1).forEach(row => {
+    const [name, subject, body] = row;
+    if (name) templates.push({ name, subject, body });
+  });
   return templates;
 }
 
-// Retrieve a single template by name
+/**
+ * Retrieve a single template by name.
+ *
+ * @param {string} name Template name.
+ * @return {{name:string,subject:string,body:string}|null} Template data or null.
+ */
 function getMailTemplate(name) {
   const sheet = getTemplateSheet();
   const data = sheet.getDataRange().getValues();

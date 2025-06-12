@@ -1,7 +1,9 @@
 // Functions for managing meeting reminders
 
 /**
- * Create or get the Meeting Reminders sheet with headers
+ * Create or get the "Meeting Reminders" sheet with headers.
+ *
+ * @return {GoogleAppsScript.Spreadsheet.Sheet} Reminder sheet.
  */
 function getReminderSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -22,7 +24,7 @@ function getReminderSheet() {
 }
 
 /**
- * Show a popup dialog for creating a reminder
+ * Display the meeting reminder modal dialog.
  */
 function showReminderDialog() {
   const html = HtmlService.createHtmlOutputFromFile('ReminderSidebar')
@@ -32,7 +34,10 @@ function showReminderDialog() {
 }
 
 /**
- * Add a new meeting reminder from the sidebar
+ * Add a new meeting reminder from the sidebar form.
+ *
+ * @param {{meetingName:string,nextReminder:string,recurrence:string,recipients:string,message:string}} form
+ *   Form values from the dialog.
  */
 function addMeetingReminder(form) {
   const sheet = getReminderSheet();
@@ -46,8 +51,10 @@ function addMeetingReminder(form) {
 }
 
 /**
- * Retrieve active leaders matching any of the given tags
- * Returns an array of {email, fullName}
+ * Retrieve active leaders matching any of the given tags.
+ *
+ * @param {string[]} tags Selected recipient tags.
+ * @return {{email:string,fullName:string}[]} Array of leader objects.
  */
 function getLeadersByTags(tags) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leadership Directory');
@@ -55,29 +62,29 @@ function getLeadersByTags(tags) {
   const data = sheet.getDataRange().getValues();
   const leaders = [];
   const seen = new Set();
-  for (let i = 1; i < data.length; i++) {
-    const emailTags = data[i][8];
-    const email = data[i][3];
-    const status = data[i][10];
-    const fullName = data[i][1];
+  data.slice(1).forEach(row => {
+    const emailTags = row[8];
+    const email = row[3];
+    const status = row[10];
+    const fullName = row[1];
     if (status === 'Active' && email && emailTags && tags.some(t => emailTags.includes(t)) && !seen.has(email)) {
       leaders.push({ email, fullName });
       seen.add(email);
     }
-  }
+  });
   return leaders;
 }
 
 /**
- * Send reminder emails if any are due and update next reminder date
+ * Send reminder emails if any are due and update each entry's next date.
  */
 function sendMeetingReminders() {
   const sheet = getReminderSheet();
   const data = sheet.getDataRange().getValues();
   const now = new Date();
 
-  for (let i = 1; i < data.length; i++) {
-    let [name, nextReminder, recurrence, recipientTags, message] = data[i];
+  data.slice(1).forEach((row, idx) => {
+    let [name, nextReminder, recurrence, recipientTags, message] = row;
     if (nextReminder && now >= new Date(nextReminder)) {
       const tags = recipientTags ? recipientTags.split(',').map(t => t.trim()).filter(String) : [];
       const leaders = getLeadersByTags(tags);
@@ -107,13 +114,13 @@ function sendMeetingReminders() {
       }
 
       // Write next reminder date back
-      sheet.getRange(i + 1, 2).setValue(nextReminder ? next : '');
+      sheet.getRange(idx + 2, 2).setValue(nextReminder ? next : '');
     }
-  }
+  });
 }
 
 /**
- * Create a daily trigger for sending reminders
+ * Create a daily trigger for sending reminders.
  */
 function createReminderTrigger() {
   ScriptApp.newTrigger('sendMeetingReminders')
